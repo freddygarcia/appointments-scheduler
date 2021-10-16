@@ -86,7 +86,7 @@ class Appointments:
         self.appointments = defaultdict(list)
     
     def check_user_already_has_appointment(self, user_id: int, date: date):
-        return date in self.appointments[user_id]
+        return date in [item.date for item in self.appointments[user_id]]
     
     def check_time_is_valid(self, time: time):
         return time.minute % 30 != 0
