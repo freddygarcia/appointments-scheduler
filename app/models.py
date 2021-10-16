@@ -40,7 +40,7 @@ class Appointment:
     
     @staticmethod
     def parse_time(str_time: str):
-        return datetime.strptime(str_time, '%H:%M')
+        return datetime.strptime(str_time, '%H:%M').time()
     
     def __str__(self) -> str:
         return f'{self.user_id} {self.date} {self.time}'
