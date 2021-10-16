@@ -2,7 +2,7 @@ from flask import request as flask_request
 from datetime import date, time, datetime
 from collections import defaultdict
 
-from app.error_handler import AppointmentBadTimeError, AppointmentExistsError, InvalidUserIdError
+from app.error_handler import AppointmentBadTimeError, AppointmentExistsError
 
 class Appointment:
 
@@ -100,15 +100,9 @@ class Appointments:
             _time = appointment.time.strftime('%H:%M')
             raise AppointmentBadTimeError(f'Invalid time: {_time}, please use the format HH:MM in 30 minutes range. e.x. 1:30')
 
-        self.appointments[appointment.user_id].append(appointment)
+        self.appointments[str(appointment.user_id)].append(appointment)
     
     def get(self, user_id: str, format=Appointment.Format.JSON):
-
-        if user_id.isdigit():
-            user_id = int(user_id)
-        else:
-            raise InvalidUserIdError
-        
         return [ item.format(format) for item in self.appointments[user_id] ]
 
     def __repr__(self):

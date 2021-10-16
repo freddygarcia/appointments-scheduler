@@ -16,13 +16,6 @@ class AppointmentBadTimeError(Exception):
 
         super().__init__(self.message)
 
-class InvalidUserIdError(Exception):
-
-    def __init__(self, message='Invalid user id'):
-        self.message = message
-
-        super().__init__(self.message)
-
 
 def init_error_handlers(app):
 
