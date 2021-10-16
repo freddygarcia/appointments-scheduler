@@ -1,11 +1,42 @@
-from flask import Blueprint
+from flask import Blueprint, request, jsonify
+from werkzeug.exceptions import NotFound
+
+from app.models import Appointment, Appointments
+from http import HTTPStatus as http_codes
+
 
 appointment = Blueprint('simple_page', __name__)
+appointments = Appointments()
 
-@appointment.route("/appointments", methods=['GET'])
-def get_appointments():
-    return "<p>Hello, World!</p>"
+
+@appointment.errorhandler(Exception)
+def exception_handler(e):
+    return jsonify({"error": str(e)}), http_codes.INTERNAL_SERVER_ERROR
+
+
+@appointment.errorhandler(ValueError)
+def exception_handler(e):
+    return jsonify({"error": str(e)}), http_codes.BAD_REQUEST
+
+
+@appointment.errorhandler(NotFound)
+def exception_handler(e):
+    return jsonify({"error": e.description}), http_codes.NOT_FOUND
+
+
+@appointment.route("/appointments/<user_id>", methods=['GET'])
+def get_appointments(user_id):
+    appointments_list = appointments.get(user_id)
+
+    if not appointments_list:
+        raise NotFound("Appointments not found")
+
+    return jsonify(appointments_list)
+
 
 @appointment.route("/appointments", methods=['POST'])
 def post_appointments():
-    return "<p>Hello, World!</p>"
+
+    appointment = Appointment.from_request(request)
+    appointments.add(appointment)
+    return '', http_codes.CREATED
