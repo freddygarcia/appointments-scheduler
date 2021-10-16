@@ -103,7 +103,10 @@ class Appointments:
         self.appointments[str(appointment.user_id)].append(appointment)
     
     def get(self, user_id: str, format=Appointment.Format.JSON):
-        return [ item.format(format) for item in self.appointments[user_id] ]
+        appointments = self.appointments[user_id]
+        appointments = sorted(appointments, key=lambda x: x.date)
+        appointments = [ item.format(format) for item in appointments ]
+        return appointments
 
     def __repr__(self):
         return f"<Appointments {self.appointments}>"
