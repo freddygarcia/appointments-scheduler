@@ -24,9 +24,12 @@ def exception_handler(e):
     return jsonify({"error": e.description}), http_codes.NOT_FOUND
 
 
+@appointment.route("/appointments/<user_id>/<format>", methods=['GET'])
 @appointment.route("/appointments/<user_id>", methods=['GET'])
-def get_appointments(user_id):
-    appointments_list = appointments.get(user_id)
+def get_appointments(user_id, format=Appointment.Format.JSON):
+
+    appointment_format = Appointment.Format.from_string(format)
+    appointments_list = appointments.get(user_id, appointment_format)
 
     if not appointments_list:
         raise NotFound("Appointments not found")

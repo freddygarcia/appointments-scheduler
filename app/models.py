@@ -6,6 +6,21 @@ from app.error_handler import AppointmentBadTimeError, AppointmentExistsError, I
 
 class Appointment:
 
+    class Format:
+        TIMESTAMP = 'timestamp'
+        ISOFORMAT = 'isoformat'
+        COMMON = 'common'
+        JSON = 'json'
+
+        @staticmethod
+        def from_string(value: str) -> str:
+            return {
+                'iso' : Appointment.Format.ISOFORMAT,
+                'cmn' : Appointment.Format.COMMON,
+                'json' : Appointment.Format.JSON,
+                'ts' : Appointment.Format.TIMESTAMP
+            }.get(value.lower(), Appointment.Format.ISOFORMAT)
+
     def __init__(self):
         self.user_id = None
         self.date = None
@@ -42,13 +57,33 @@ class Appointment:
     def parse_time(str_time: str):
         return datetime.strptime(str_time, '%H:%M').time()
     
+    def get_datetime(self):
+        return datetime.combine(self.date, self.time)
+    
+    def format(self, format: Format):
+        dt = self.get_datetime()
+
+        if format == Appointment.Format.TIMESTAMP:
+            return dt.timestamp()
+        elif format == Appointment.Format.ISOFORMAT:
+            return dt.isoformat()
+        elif format == Appointment.Format.COMMON:
+            return dt.strftime("%Y-%m-%d %H:%M")
+        elif format == Appointment.Format.JSON:
+            return {
+                'date' : self.date.isoformat(),
+                'time' : self.time.isoformat()
+            }
+        else:
+            raise ValueError(f'Invalid format: {format}')
+    
     def __str__(self) -> str:
         return f'{self.user_id} {self.date} {self.time}'
 
 class Appointments:
 
     def __init__(self):
-        self.appointments = defaultdict(dict)
+        self.appointments = defaultdict(list)
     
     def check_user_already_has_appointment(self, user_id: int, date: date):
         return date in self.appointments[user_id]
@@ -65,16 +100,16 @@ class Appointments:
             _time = appointment.time.strftime('%H:%M')
             raise AppointmentBadTimeError(f'Invalid time: {_time}, please use the format HH:MM in 30 minutes range. e.x. 1:30')
 
-        self.appointments[appointment.user_id][appointment.date] = appointment.time
+        self.appointments[appointment.user_id].append(appointment)
     
-    def get(self, user_id: str):
+    def get(self, user_id: str, format=Appointment.Format.JSON):
 
         if user_id.isdigit():
             user_id = int(user_id)
         else:
             raise InvalidUserIdError
         
-        return [ { 'date' : k, 'time' : v } for k, v in self.appointments[user_id].items() ]
+        return [ item.format(format) for item in self.appointments[user_id] ]
 
     def __repr__(self):
         return f"<Appointments {self.appointments}>"
